@@ -3,6 +3,8 @@ results
 
 # Distribution / packaging
 .Python
+.vscode
+*.so
 env/
 build/
 develop-eggs/

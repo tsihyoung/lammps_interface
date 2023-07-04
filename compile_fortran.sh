@@ -1,0 +1,1 @@
+f2py -c --fcompiler=intelem --f90flags='-qmkl -qopenmp -O2' -m _calc_dist_matrix distance_matrix.f90 -L${MKLROOT}/lib/intel64 -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lmkl_def -liomp5 -lpthread -lm -ldl

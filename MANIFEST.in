@@ -1,3 +1,4 @@
 include requirements.txt
 include versioneer.py
 include lammps_interface/_version.py
+include lammps_interface/_calc_dist_matrix.cpython-38-x86_64-linux-gnu.so

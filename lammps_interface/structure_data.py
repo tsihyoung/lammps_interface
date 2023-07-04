@@ -24,6 +24,7 @@ import networkx as nx
 import operator
 import time
 from time import perf_counter as clock
+from ._calc_dist_matrix import calc_dist_matrix
 
 try:
     import networkx as nx
@@ -515,32 +516,22 @@ class MolecularGraph(nx.Graph):
     def compute_min_img_distances(self, cell):
         self.distance_matrix = np.empty((self.number_of_nodes(), self.number_of_nodes()))
         
-        tmp_one = np.empty((self.number_of_nodes(), 3))
-        #mp_one_cell = np.empty((self.number_of_nodes(), 3))
+        cartesian_coordinates = np.empty((self.number_of_nodes(), 3))
         for n1 in self.nodes():
-            id1 = self.nodes[n1]['index'] - 1 
-            coords1 = self.nodes[n1]['cartesian_coordinates']
-            tmp_one[id1,:] = np.dot(cell.inverse, coords1) % 1
-            #mp_one_cell[id1,:] = np.dot(tmp_one[id1,:], cell.cell)
+            id1 = self.nodes[n1]['index'] - 1
+            cartesian_coordinates[id1,:] = self.nodes[n1]['cartesian_coordinates']
 
-        for n1, n2 in itertools.combinations(self.nodes(), 2):
-            id1, id2 = self.nodes[n1]['index']-1,\
-                                self.nodes[n2]['index']-1
-            #coords1, coords2 = self.coordinates[id1], self.coordinates[id2]
-            coords1, coords2 = self.nodes[n1]['cartesian_coordinates'], self.nodes[n2]['cartesian_coordinates']
-            delta = tmp_one[id1,:] - tmp_one[id2,:]
-            three0 = np.around(delta)
-            four0 = np.dot(delta - three0, cell.cell)
-            dist = np.linalg.norm(four0)
-            
-            #    # perform a distance check here and break with error.
-            if dist < 0.1:
-                print("ERROR: distance between atom %i and %i are less than 0.1 Angstrom in the unit cell!"
-                    "Please check your input file for overlapping atoms."%(n1, n2))
-                exit()
+        self.distance_matrix = calc_dist_matrix(
+            np.asfortranarray(cell.cell), np.asfortranarray(cell.inverse),
+            cartesian_coordinates, self.number_of_nodes()
+        )
 
-            self.distance_matrix[id1][id2] = dist
-            self.distance_matrix[id2][id1] = dist
+        #    #    # perform a distance check here and break with error.
+        #    if dist < 0.1:
+        #        print("ERROR: distance between atom %i and %i are less than 0.1 Angstrom in the unit cell!"
+        #            "Please check your input file for overlapping atoms."%(n1, n2))
+        #        exit()
+
 
     def min_img(self, coord):
         f = np.dot(self.cell.inverse, coord)
